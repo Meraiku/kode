@@ -8,7 +8,7 @@ build:
 run:build
 	@./.bin/auth_serv
 
-up:db
+up:
 	cd ./sql/migrations;
 	goose postgres $(DB_URL) up
 
@@ -20,6 +20,3 @@ docker:build
 	docker build . -t $(I_PATH)/$(I_NAME)
 	docker push $(I_PATH)/$(I_NAME)
 	docker compose up
-
-db:
-	./scripts/db.sh
