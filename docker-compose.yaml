@@ -1,0 +1,57 @@
+
+
+services:
+  db:
+    container_name: database
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - ~/apps/postgres:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=kode
+
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: pass
+    ports:
+      - 5000:80
+
+  cache:
+    container_name: cache
+    image: redis
+    restart: always
+    ports:
+      - '6379:6379'
+    volumes:
+      - cache:/data
+    environment:
+      - REDIS_PASSWORD=pass
+      - REDIS_USER=kode
+      - REDIS_USER_PASSWORD=root
+
+  auth_server:
+    image: meraiku/kode
+    restart: always
+    ports:
+      - 9000:9000
+    links:
+      - db
+      - cache
+    env_file:
+      - path: ./.env
+        required: true
+      - path: ./docker.env
+        required: false
+
+volumes:
+  cache:
+    driver: local
+
