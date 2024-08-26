@@ -185,7 +185,7 @@ SMTP_PASS=                              -Пароль аутентификаци
   <summary>.env</summary>
   
 ```
-DB_URL= postgres://postgres:test@localhost:5432/medods?sslmode=disable
+DB_URL= postgres://postgres:test@localhost:5432/kode?sslmode=disable
 RDB_URL= redis://:pass@localhost:6379/0
 JWT_SECRET= RHTjGzsHH+J8uQvfgNi1N48cn8ZL6NQJXRgJZVlNWj8FlsyPkOMXgCuPdu3nx3aoMmc8VXay7iJnk4/e2mAIXA==
 
@@ -200,7 +200,7 @@ SMTP_PASS=
   <summary>docker.env</summary>
   
 ```
-DB_URL= postgres://postgres:test@database:5432/medods?sslmode=disable
+DB_URL= postgres://postgres:test@database:5432/kode?sslmode=disable
 RDB_URL= redis://:pass@cache:6379/0
 ```
   
