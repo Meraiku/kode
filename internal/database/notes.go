@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (db *DB) CreateNote(userId, body, title string) (Note, error) {
+func (db *DB) CreateNote(userId, body, title string) (*Note, error) {
 	n := Note{
 		ID:        uuid.New(),
 		Title:     title,
@@ -34,7 +34,7 @@ func (db *DB) CreateNote(userId, body, title string) (Note, error) {
 		&n.Body,
 	)
 
-	return n, err
+	return &n, err
 }
 
 func (db *DB) GetUserNotes(userId string) ([]Note, error) {

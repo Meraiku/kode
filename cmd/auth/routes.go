@@ -17,11 +17,8 @@ func (app *application) routes() http.Handler {
 		r.Get("/users", app.handleGetUsers)
 		r.Post("/users", app.handlePostUsers)
 
-		r.Route("/", func(r chi.Router) {
-
-			r.Get("/notes", app.authenticateUser(app.handleGetNotes))
-			r.Post("/notes", app.authenticateUser(app.handlePostNotes))
-		})
+		r.Get("/notes", app.authenticateUser(app.handleGetNotes))
+		r.Post("/notes", app.authenticateUser(app.handlePostNotes))
 
 		r.Route("/tokens", func(r chi.Router) {
 			r.Post("/", app.handleGetTokens)

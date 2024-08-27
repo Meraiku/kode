@@ -13,6 +13,7 @@ func (c *Redis) SetTokens(id string, tokens *token.Tokens, ctx context.Context) 
 	if err != nil {
 		return err
 	}
+
 	expires, err := payload.GetExpirationTime()
 	if err != nil {
 		return err
@@ -27,6 +28,7 @@ func (c *Redis) SetTokens(id string, tokens *token.Tokens, ctx context.Context) 
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -40,6 +42,7 @@ func (c *Redis) GetTokens(id string, ctx context.Context) (*token.Tokens, error)
 	if err := json.Unmarshal([]byte(result), tokens); err != nil {
 		return nil, err
 	}
+
 	return tokens, nil
 }
 
@@ -48,5 +51,6 @@ func (c *Redis) DeleteTokens(id string, ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

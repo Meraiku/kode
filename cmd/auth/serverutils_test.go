@@ -28,7 +28,7 @@ func newTestApplication(t *testing.T) *application {
 }
 
 func newTestServer(t *testing.T, h http.Handler) *testServer {
-	ts := httptest.NewTLSServer(h)
+	ts := httptest.NewServer(h)
 	return &testServer{ts}
 }
 

@@ -103,10 +103,47 @@ func (app *application) writeTokens(id, ip string, w http.ResponseWriter) (*toke
 	return tokens, nil
 }
 
-func cutPort(ip string) string {
-	addr := strings.Split(ip, ":")
+func (app *application) validateRefreshToken(refreshToken, id string) bool {
+	user, err := app.db.GetUserByID(id, app.ctx)
+	if err != nil {
+		return false
+	}
 
-	return addr[0]
+	if user.RefreshToken == nil {
+		return false
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.RefreshToken), []byte(refreshToken)); err != nil {
+		return false
+	}
+
+	return true
+}
+
+func tokensToCookies(w http.ResponseWriter, tokens *token.Tokens, id string) {
+	cookieAccess := &http.Cookie{
+		Name:   "access",
+		Value:  tokens.AccessToken,
+		MaxAge: 15 * 60,
+	}
+	cookieRefresh := &http.Cookie{
+		Name:   "refresh",
+		Value:  tokens.RefreshToken,
+		MaxAge: 60 * 60 * 24,
+	}
+	cookieUserId := &http.Cookie{
+		Name:   "id",
+		Value:  id,
+		MaxAge: 60 * 60 * 24,
+	}
+
+	setCookies(w, []http.Cookie{*cookieAccess, *cookieRefresh, *cookieUserId})
+}
+
+func setCookies(w http.ResponseWriter, cookies []http.Cookie) {
+	for _, cookie := range cookies {
+		http.SetCookie(w, &cookie)
+	}
 }
 
 func (app *application) sendEmailNotification(recipient string) error {
@@ -147,45 +184,8 @@ func decodeIntoStruct(r *http.Request, v any) error {
 	return nil
 }
 
-func tokensToCookies(w http.ResponseWriter, tokens *token.Tokens, id string) {
-	cookieAccess := &http.Cookie{
-		Name:   "access",
-		Value:  tokens.AccessToken,
-		MaxAge: 15 * 60,
-	}
-	cookieRefresh := &http.Cookie{
-		Name:   "refresh",
-		Value:  tokens.RefreshToken,
-		MaxAge: 60 * 60 * 24,
-	}
-	cookieUserId := &http.Cookie{
-		Name:   "id",
-		Value:  id,
-		MaxAge: 60 * 60 * 24,
-	}
+func cutPort(ip string) string {
+	addr := strings.Split(ip, ":")
 
-	setCookies(w, []http.Cookie{*cookieAccess, *cookieRefresh, *cookieUserId})
-}
-
-func setCookies(w http.ResponseWriter, cookies []http.Cookie) {
-	for _, cookie := range cookies {
-		http.SetCookie(w, &cookie)
-	}
-}
-
-func (app *application) validateRefreshToken(refreshToken, id string) bool {
-	user, err := app.db.GetUserByID(id, app.ctx)
-	if err != nil {
-		return false
-	}
-
-	if user.RefreshToken == nil {
-		return false
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(*user.RefreshToken), []byte(refreshToken)); err != nil {
-		return false
-	}
-
-	return true
+	return addr[0]
 }

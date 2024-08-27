@@ -36,6 +36,7 @@ func (app *application) authenticateUser(next authHandler) http.HandlerFunc {
 			if app.validateRefreshToken(refreshToken.Value, id.Value) {
 				tokens, _ := app.writeTokens(id.Value, cutPort(r.RemoteAddr), w)
 				cookie.Value = tokens.AccessToken
+
 			} else {
 				app.respondWithError(w, http.StatusUnauthorized, "missing Api Keys in cookies")
 				return

@@ -7,7 +7,7 @@ import (
 	"github.com/meraiku/kode/internal/database"
 )
 
-func (db *MockDB) CreateNote(userId, body, title string) (database.Note, error) {
+func (db *MockDB) CreateNote(userId, body, title string) (*database.Note, error) {
 	n := database.Note{
 		ID:        uuid.New(),
 		Title:     title,
@@ -19,7 +19,7 @@ func (db *MockDB) CreateNote(userId, body, title string) (database.Note, error) 
 
 	db.DB[n.ID.String()] = n
 
-	return n, nil
+	return &n, nil
 }
 
 func (db *MockDB) GetUserNotes(userId string) ([]database.Note, error) {
