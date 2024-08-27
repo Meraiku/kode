@@ -10,6 +10,8 @@ type Store interface {
 	GetUsers(context.Context) ([]User, error)
 	GetUserByID(string, context.Context) (*User, error)
 	UpdateUserInfo(string, string, context.Context) error
+	GetUserNotes(userId string) ([]Note, error)
+	CreateNote(userId, body, title string) error
 }
 
 type DB struct {

@@ -187,24 +187,43 @@ func (app *application) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	app.respondWithJSON(w, http.StatusOK, users)
 }
 
-func (app *application) handleGetNotes(w http.ResponseWriter, r *http.Request) {
-	users, err := app.db.GetUsers(app.ctx)
+func (app *application) handleGetNotes(w http.ResponseWriter, r *http.Request, id string) {
+
+	notes, err := app.db.GetUserNotes(id)
 	if err != nil {
+		if errors.Is(err, database.ErrNotFound) {
+			app.respondWithError(w, http.StatusBadRequest, "notes not found")
+			return
+		}
 		app.errorLog.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	app.respondWithJSON(w, http.StatusOK, users)
+	app.respondWithJSON(w, http.StatusOK, notes)
 }
 
-func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request) {
-	users, err := app.db.GetUsers(app.ctx)
-	if err != nil {
-		app.errorLog.Print(err)
+func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request, id string) {
+	type parameters struct {
+		Title string `json:"title"`
+		Body  string `json:"body"`
+	}
+
+	params := &parameters{}
+
+	if err := decodeIntoStruct(r, params); err != nil {
+		if params.Body == "" || params.Title == "" {
+			app.respondWithError(w, http.StatusBadRequest, "missing body")
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	app.respondWithJSON(w, http.StatusOK, users)
+	if err := app.db.CreateNote(id, params.Body, params.Title); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	app.respondWithJSON(w, http.StatusCreated, nil)
 }
