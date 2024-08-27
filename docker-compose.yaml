@@ -37,7 +37,7 @@ services:
       - REDIS_USER=kode
       - REDIS_USER_PASSWORD=root
 
-  auth_server:
+  server:
     image: meraiku/kode
     restart: always
     ports:

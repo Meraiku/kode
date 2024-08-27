@@ -1,7 +1,7 @@
 package speller
 
 var (
-	spellerURL  = "http://speller.yandex.net/services/spellservice.json/checkText"
+	spellerURL  = "https://speller.yandex.net/services/spellservice.json/checkText"
 	spellerOpt  = "6"
 	spellerLang = "ru,en"
 )
