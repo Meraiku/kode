@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -10,8 +11,13 @@ import (
 
 func (m *MockDB) CreateUser(email string, ctx context.Context) (string, error) {
 
-	for _, v := range m.DB {
-		if email == v.Email {
+	for _, vt := range m.DB {
+		switch v := vt.(type) {
+		case database.User:
+			if email == v.Email {
+				return "", database.ErrNotFound
+			}
+		default:
 			return "", database.ErrNotFound
 		}
 	}
@@ -32,8 +38,11 @@ func (m *MockDB) GetUsers(ctx context.Context) ([]database.User, error) {
 
 	users := []database.User{}
 
-	for _, v := range m.DB {
-		users = append(users, v)
+	for _, vt := range m.DB {
+		switch v := vt.(type) {
+		case database.User:
+			users = append(users, v)
+		}
 	}
 
 	return users, nil
@@ -45,8 +54,13 @@ func (m *MockDB) GetUserByID(id string, ctx context.Context) (*database.User, er
 	if !ok {
 		return nil, database.ErrNotFound
 	}
+	switch v := user.(type) {
+	case database.User:
+		return &v, nil
+	default:
+		return nil, database.ErrNotFound
+	}
 
-	return &user, nil
 }
 
 func (m *MockDB) UpdateUserInfo(id, refreshToken string, ctx context.Context) error {
@@ -55,9 +69,13 @@ func (m *MockDB) UpdateUserInfo(id, refreshToken string, ctx context.Context) er
 	if !ok {
 		return database.ErrNotFound
 	}
-	user.RefreshToken = &refreshToken
+	switch v := user.(type) {
+	case database.User:
+		v.RefreshToken = &refreshToken
+		log.Print(*v.RefreshToken)
+		m.DB[id] = v
+	}
 
-	m.DB[id] = user
-
+	log.Print(m.DB[id])
 	return nil
 }

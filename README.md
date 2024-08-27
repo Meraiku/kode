@@ -52,6 +52,10 @@ curl -d '{}' http://localhost:9000/api/users
 
 ### Создание пары access, refresh токенов
 
+При аутентификации токена отправляются в теле ответа, но также записываются в cookie
+
+Авторизация происходит через cookie
+
 #### /api/tokens
 
 Поддерживает метод POST
@@ -63,6 +67,15 @@ curl -d '{}' http://localhost:9000/api/users
 ```json
 {
     "id": "6361ce03-9ea3-4d71-9028-21c20506164e"
+}
+```
+
+Тело ответа:
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiI0ZjFjYTI2NC0zOGIyLTQ0YTEtODFkMC03MWIxZmM0YTQzYjEiLCJleHAiOjE3MjQ3NTg5NTIsImlhdCI6MTcyNDc1ODA1Mn0.RG598gl9HMNmjlllwTHKDgO7tvMZnV4UH0bB-1y2HQi39Nk4F99ynWC6jHFLuL9mNptoYGs0S9TtMipk7XUDLw",
+  "refresh_token": "aAR+JMDhCa5FJJn+ts0uEP3CUt0605VK3/WchZ7FVtI="
 }
 ```
 
@@ -117,6 +130,15 @@ curl -d '{}' http://localhost:9000/api/tokens
 {
     "id": "6361ce03-9ea3-4d71-9028-21c20506164e",
     "refresh_token": "eHU0HXVZImadRMUyVIXFsuywhGB/FuUPCt/27ckI2Ok="
+}
+```
+
+Тело ответа:
+
+```json
+{
+  "access_token": "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiI0ZjFjYTI2NC0zOGIyLTQ0YTEtODFkMC03MWIxZmM0YTQzYjEiLCJleHAiOjE3MjQ3NTg5NTIsImlhdCI6MTcyNDc1ODA1Mn0.RG598gl9HMNmjlllwTHKDgO7tvMZnV4UH0bB-1y2HQi39Nk4F99ynWC6jHFLuL9mNptoYGs0S9TtMipk7XUDLw",
+  "refresh_token": "aAR+JMDhCa5FJJn+ts0uEP3CUt0605VK3/WchZ7FVtI="
 }
 ```
 
@@ -185,7 +207,6 @@ curl -d '{}' http://localhost:9000/api/tokens/refresh
   
 ```bash
 curl -v --cookie "access=${JWT token}" http://localhost:9000/api/notes
-curl -v --cookie "access=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiIzMzFjZGU0Yi02YzkzLTQ4OTYtOTVlNC03NzJiOWNkNzQ5YjAiLCJleHAiOjE3MjQ3NTgyODQsImlhdCI6MTcyNDc1NzM4NH0.ixHllUpecIuQDJMxOxbrNt_vDBx-LnZTvLF1TBmIlyUc_mQ9HUxOpgd0ZDM1ARux2tD0o_KJ0S7v3zRwP5wypQ" http://localhost:9000/api/notes
 ```
   
 </details>
@@ -219,15 +240,15 @@ curl -v --cookie "access=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC
   
 ```bash
 curl -v --cookie "access=${JWT token}" -d '{"title":"ЭьТо Мой тайтль", "body":"Этттто моё телаа"}' http://localhost:9000/api/notes
-curl -v --cookie "access=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiIzMzFjZGU0Yi02YzkzLTQ4OTYtOTVlNC03NzJiOWNkNzQ5YjAiLCJleHAiOjE3MjQ3NTgyODQsImlhdCI6MTcyNDc1NzM4NH0.ixHllUpecIuQDJMxOxbrNt_vDBx-LnZTvLF1TBmIlyUc_mQ9HUxOpgd0ZDM1ARux2tD0o_KJ0S7v3zRwP5wypQ" -d '{"title":"ЭьТо Мой тайтль", "body":"Этттто моё телаа"}' http://localhost:9000/api/notes
 ```
   
 </details>
 
 ### Добавлены тесты
 
-- Mock тесты эндпоинтов с критичными ситуациями
-- Создание токенов
+- Mock тесты создания токенов и пользователей с критичными ситуациями
+- Тест корректности создания токенов
+- Тест функциональности спеллера
 
 ```bash
 go test ./...

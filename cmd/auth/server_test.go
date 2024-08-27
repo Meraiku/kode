@@ -165,16 +165,14 @@ func TestAPIserver(t *testing.T) {
 
 		tests := []struct {
 			name      string
-			urlPath   string
 			wantCode  int
 			userEmail string
 			userID    string
 		}{
 			{
 				name:      "From Creation To Refresh Tokens",
-				urlPath:   "/api/tokens/refresh",
 				wantCode:  http.StatusCreated,
-				userEmail: "testing@gmail.com",
+				userEmail: "testing2@gmail.com",
 			},
 		}
 
@@ -232,4 +230,5 @@ func TestAPIserver(t *testing.T) {
 			})
 		}
 	})
+
 }

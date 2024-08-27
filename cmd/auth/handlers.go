@@ -103,7 +103,7 @@ func (app *application) handleRefreshTokens(w http.ResponseWriter, r *http.Reque
 		}
 
 	default:
-		if !app.validateRefreshToken(params.RefreshToken, params.RefreshToken) {
+		if !app.validateRefreshToken(params.RefreshToken, params.Id) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
