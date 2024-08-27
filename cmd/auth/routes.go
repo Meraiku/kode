@@ -14,8 +14,15 @@ func (app *application) routes() http.Handler {
 	r.Use(middleware.Recoverer)
 
 	r.Route("/api", func(r chi.Router) {
-		r.Get("/users", app.GetUsersList)
-		r.Post("/users", app.handleCreateUser)
+		r.Get("/users", app.handleGetUsers)
+		r.Post("/users", app.handlePostUsers)
+
+		r.Route("/", func(r chi.Router) {
+			r.Use(app.authenticateUser)
+
+			r.Get("/notes", app.handleGetNotes)
+			r.Post("/notes", app.handlePostNotes)
+		})
 
 		r.Route("/tokens", func(r chi.Router) {
 			r.Post("/", app.handleGetTokens)

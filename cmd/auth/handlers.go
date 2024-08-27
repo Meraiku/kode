@@ -134,7 +134,7 @@ func (app *application) handleRefreshTokens(w http.ResponseWriter, r *http.Reque
 	app.respondWithJSON(w, http.StatusCreated, &tokens)
 }
 
-func (app *application) handleCreateUser(w http.ResponseWriter, r *http.Request) {
+func (app *application) handlePostUsers(w http.ResponseWriter, r *http.Request) {
 
 	type parameters struct {
 		Email string `json:"email"`
@@ -176,7 +176,29 @@ func (app *application) handleCreateUser(w http.ResponseWriter, r *http.Request)
 	app.respondWithJSON(w, http.StatusCreated, out{Id: id})
 }
 
-func (app *application) GetUsersList(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleGetUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := app.db.GetUsers(app.ctx)
+	if err != nil {
+		app.errorLog.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	app.respondWithJSON(w, http.StatusOK, users)
+}
+
+func (app *application) handleGetNotes(w http.ResponseWriter, r *http.Request) {
+	users, err := app.db.GetUsers(app.ctx)
+	if err != nil {
+		app.errorLog.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	app.respondWithJSON(w, http.StatusOK, users)
+}
+
+func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request) {
 	users, err := app.db.GetUsers(app.ctx)
 	if err != nil {
 		app.errorLog.Print(err)
