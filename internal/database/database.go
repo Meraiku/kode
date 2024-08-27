@@ -11,7 +11,7 @@ type Store interface {
 	GetUserByID(string, context.Context) (*User, error)
 	UpdateUserInfo(string, string, context.Context) error
 	GetUserNotes(userId string) ([]Note, error)
-	CreateNote(userId, body, title string) error
+	CreateNote(userId, body, title string) (Note, error)
 }
 
 type DB struct {

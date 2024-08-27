@@ -95,7 +95,7 @@ curl -d '{}' http://localhost:9000/api/users
   <summary>Комнды для тестирования</summary>
   
 ```bash
-curl -d '{"id":"6361ce03-9ea3-4d71-9028-21c20506164e"}' http://localhost:9000/api/tokens
+curl -d '{"id":"${UUID}"}' http://localhost:9000/api/tokens
 curl -d '{"id":""}' http://localhost:9000/api/tokens
 curl -d '{}' http://localhost:9000/api/tokens
 ```
@@ -135,9 +135,91 @@ curl -d '{}' http://localhost:9000/api/tokens
   <summary>Комнды для тестирования</summary>
   
 ```bash
-curl -d '{"id":"6361ce03-9ea3-4d71-9028-21c20506164e", "refresh_token":"eHU0HXVZImadRMUyVIXFsuywhGB/FuUPCt/27ckI2Ok="}' http://localhost:9000/api/tokens/refresh
-curl -d '{"id":"6361ce03-9ea3-4d71-9028-21c20506164e", "refresh_token":""}' http://localhost:9000/api/tokens/refresh
+curl -d '{"id":"${UUID}", "refresh_token":"${Refresh token}"}' http://localhost:9000/api/tokens/refresh
+curl -d '{"id":"${UUID}", "refresh_token":""}' http://localhost:9000/api/tokens/refresh
 curl -d '{}' http://localhost:9000/api/tokens/refresh
+```
+  
+</details>
+
+### Создание и просмотр заметок
+
+- Реализовано:
+  - процесс авторизации через cookie
+  - создание новых пар токенов при истечении жизни токенов
+
+#### /api/notes
+
+Поддерживает методы GET POST
+
+- Get
+
+Выводит список заметок пользователя
+
+Тело ответа:
+
+```json
+[
+  {
+    "id": "b0e90346-1717-4b4d-8f57-44cdcb521c0e",
+    "title": "Это Мой тайтл",
+    "body": "Это моё тело",
+    "created_at": "2024-08-27T11:18:53.33262Z",
+    "updated_at": "2024-08-27T11:18:53.33262Z",
+    "user_id": "4f1ca264-38b2-44a1-81d0-71b1fc4a43b1"
+  },
+  {
+    "id": "7be26462-592d-4333-b7d0-b4d11241d6cf",
+    "title": "Это Мой тайтл",
+    "body": "Это моё тело",
+    "created_at": "2024-08-27T11:18:52.45627Z",
+    "updated_at": "2024-08-27T11:18:52.45627Z",
+    "user_id": "4f1ca264-38b2-44a1-81d0-71b1fc4a43b1"
+  }
+]
+```
+
+    
+<details>
+  <summary>Комнды для тестирования</summary>
+  
+```bash
+curl -v --cookie "access=${JWT token}" http://localhost:9000/api/notes
+curl -v --cookie "access=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiIzMzFjZGU0Yi02YzkzLTQ4OTYtOTVlNC03NzJiOWNkNzQ5YjAiLCJleHAiOjE3MjQ3NTgyODQsImlhdCI6MTcyNDc1NzM4NH0.ixHllUpecIuQDJMxOxbrNt_vDBx-LnZTvLF1TBmIlyUc_mQ9HUxOpgd0ZDM1ARux2tD0o_KJ0S7v3zRwP5wypQ" http://localhost:9000/api/notes
+```
+  
+</details>
+
+
+- POST
+
+Пример тела запроса: 
+
+```json
+{
+    "title": "ЭьТо Мой тайтль",
+    "body": "Этттто моё телаа"
+}
+```
+Тело ответа:
+
+```json
+{
+  "title": "Это Мой тайтл",
+  "body": "Это моё тело"
+}
+```
+
+- Реализовано:
+  - проверка орфографических ошибок при помощи Яндекс.Спеллер
+
+    
+<details>
+  <summary>Комнды для тестирования</summary>
+  
+```bash
+curl -v --cookie "access=${JWT token}" -d '{"title":"ЭьТо Мой тайтль", "body":"Этттто моё телаа"}' http://localhost:9000/api/notes
+curl -v --cookie "access=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiIxMjcuMC4wLjEiLCJzdWIiOiIzMzFjZGU0Yi02YzkzLTQ4OTYtOTVlNC03NzJiOWNkNzQ5YjAiLCJleHAiOjE3MjQ3NTgyODQsImlhdCI6MTcyNDc1NzM4NH0.ixHllUpecIuQDJMxOxbrNt_vDBx-LnZTvLF1TBmIlyUc_mQ9HUxOpgd0ZDM1ARux2tD0o_KJ0S7v3zRwP5wypQ" -d '{"title":"ЭьТо Мой тайтль", "body":"Этттто моё телаа"}' http://localhost:9000/api/notes
 ```
   
 </details>

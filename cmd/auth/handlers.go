@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/meraiku/kode/internal/database"
+	"github.com/meraiku/kode/internal/speller"
 	"github.com/meraiku/kode/internal/token"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func (app *application) handleGetTokens(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +28,7 @@ func (app *application) handleGetTokens(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	tokens, err := app.writeTokens(params.Id, cutPort(r.RemoteAddr))
+	tokens, err := app.writeTokens(params.Id, cutPort(r.RemoteAddr), w)
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			app.respondWithError(w, http.StatusBadRequest, database.ErrNotFound.Error())
@@ -103,28 +103,13 @@ func (app *application) handleRefreshTokens(w http.ResponseWriter, r *http.Reque
 		}
 
 	default:
-		user, err := app.db.GetUserByID(params.Id, app.ctx)
-		if err != nil {
-			if errors.Is(err, database.ErrNotFound) {
-				app.respondWithError(w, http.StatusBadRequest, database.ErrNotFound.Error())
-				return
-			}
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		if user.RefreshToken == nil {
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		if err := bcrypt.CompareHashAndPassword([]byte(*user.RefreshToken), []byte(params.RefreshToken)); err != nil {
+		if !app.validateRefreshToken(params.RefreshToken, params.RefreshToken) {
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 	}
 
-	tokens, err = app.writeTokens(params.Id, cutPort(r.RemoteAddr))
+	tokens, err = app.writeTokens(params.Id, cutPort(r.RemoteAddr), w)
 	if err != nil {
 		app.errorLog.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -216,14 +201,33 @@ func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request, 
 			app.respondWithError(w, http.StatusBadRequest, "missing body")
 			return
 		}
+		app.errorLog.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err := app.db.CreateNote(id, params.Body, params.Title); err != nil {
+	title, err := speller.CheckText(params.Title)
+	if err != nil {
+		app.errorLog.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	app.respondWithJSON(w, http.StatusCreated, nil)
+	body, err := speller.CheckText(params.Body)
+	if err != nil {
+		app.errorLog.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	note, err := app.db.CreateNote(id, body, title)
+	if err != nil {
+		app.errorLog.Print(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	params.Body = note.Body
+	params.Title = note.Title
+
+	app.respondWithJSON(w, http.StatusCreated, params)
 }

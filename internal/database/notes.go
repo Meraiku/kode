@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (db *DB) CreateNote(userId, body, title string) error {
+func (db *DB) CreateNote(userId, body, title string) (Note, error) {
 	n := Note{
 		ID:        uuid.New(),
 		Title:     title,
@@ -17,20 +17,24 @@ func (db *DB) CreateNote(userId, body, title string) error {
 	}
 
 	query := `INSERT INTO notes (id, title, body, created_at, updated_at, user_id)
-	VALUES ($1 $2 $3 $4 $5 $6)`
+	VALUES ($1, $2, $3, $4, $5, $6) RETURNING title, body`
 
-	if _, err := db.db.Exec(query,
+	row := db.db.QueryRow(query,
 		&n.ID,
 		&n.Title,
 		&n.Body,
 		&n.CreatedAt,
 		&n.UpdatedAt,
 		&n.UserId,
-	); err != nil {
-		return err
-	}
+	)
 
-	return nil
+	n = Note{}
+	err := row.Scan(
+		&n.Title,
+		&n.Body,
+	)
+
+	return n, err
 }
 
 func (db *DB) GetUserNotes(userId string) ([]Note, error) {

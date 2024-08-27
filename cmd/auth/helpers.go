@@ -74,7 +74,7 @@ func (app *application) respondWithJSON(w http.ResponseWriter, code int, payload
 	w.Write(data)
 }
 
-func (app *application) writeTokens(id, ip string) (*token.Tokens, error) {
+func (app *application) writeTokens(id, ip string, w http.ResponseWriter) (*token.Tokens, error) {
 
 	access, err := token.GetJWT(id, ip)
 	if err != nil {
@@ -97,6 +97,8 @@ func (app *application) writeTokens(id, ip string) (*token.Tokens, error) {
 	if err := app.cache.SetTokens(id, tokens, app.ctx); err != nil {
 		return nil, err
 	}
+
+	tokensToCookies(w, tokens, id)
 
 	return tokens, nil
 }
@@ -143,4 +145,47 @@ func decodeIntoStruct(r *http.Request, v any) error {
 	}
 
 	return nil
+}
+
+func tokensToCookies(w http.ResponseWriter, tokens *token.Tokens, id string) {
+	cookieAccess := &http.Cookie{
+		Name:   "access",
+		Value:  tokens.AccessToken,
+		MaxAge: 15 * 60,
+	}
+	cookieRefresh := &http.Cookie{
+		Name:   "refresh",
+		Value:  tokens.RefreshToken,
+		MaxAge: 60 * 60 * 24,
+	}
+	cookieUserId := &http.Cookie{
+		Name:   "id",
+		Value:  id,
+		MaxAge: 60 * 60 * 24,
+	}
+
+	setCookies(w, []http.Cookie{*cookieAccess, *cookieRefresh, *cookieUserId})
+}
+
+func setCookies(w http.ResponseWriter, cookies []http.Cookie) {
+	for _, cookie := range cookies {
+		http.SetCookie(w, &cookie)
+	}
+}
+
+func (app *application) validateRefreshToken(refreshToken, id string) bool {
+	user, err := app.db.GetUserByID(id, app.ctx)
+	if err != nil {
+		return false
+	}
+
+	if user.RefreshToken == nil {
+		return false
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(*user.RefreshToken), []byte(refreshToken)); err != nil {
+		return false
+	}
+
+	return true
 }
