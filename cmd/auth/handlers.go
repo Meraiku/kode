@@ -172,9 +172,11 @@ func (app *application) handleGetUsers(w http.ResponseWriter, r *http.Request) {
 	app.respondWithJSON(w, http.StatusOK, users)
 }
 
-func (app *application) handleGetNotes(w http.ResponseWriter, r *http.Request, id string) {
+func (app *application) handleGetNotes(w http.ResponseWriter, r *http.Request) {
 
-	notes, err := app.db.GetUserNotes(id)
+	id := app.ctx.Value(key("id"))
+
+	notes, err := app.db.GetUserNotes(id.(string))
 	if err != nil {
 		if errors.Is(err, database.ErrNotFound) {
 			app.respondWithError(w, http.StatusBadRequest, "notes not found")
@@ -188,13 +190,15 @@ func (app *application) handleGetNotes(w http.ResponseWriter, r *http.Request, i
 	app.respondWithJSON(w, http.StatusOK, notes)
 }
 
-func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request, id string) {
+func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Title string `json:"title"`
 		Body  string `json:"body"`
 	}
 
 	params := &parameters{}
+
+	id := app.ctx.Value(key("id"))
 
 	if err := decodeIntoStruct(r, params); err != nil {
 		if params.Body == "" || params.Title == "" {
@@ -220,7 +224,7 @@ func (app *application) handlePostNotes(w http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	note, err := app.db.CreateNote(id, body, title)
+	note, err := app.db.CreateNote(id.(string), body, title)
 	if err != nil {
 		app.errorLog.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)

@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"time"
 
 	"github.com/meraiku/kode/internal/token"
 )
 
-type authHandler func(http.ResponseWriter, *http.Request, string)
+type key string
 
 func (app *application) logRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -17,7 +18,7 @@ func (app *application) logRequest(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) authenticateUser(next authHandler) http.HandlerFunc {
+func (app *application) authenticateUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		cookie, err := r.Cookie("access")
@@ -72,7 +73,8 @@ func (app *application) authenticateUser(next authHandler) http.HandlerFunc {
 				return
 			}
 		}
+		app.ctx = context.WithValue(app.ctx, key("id"), id)
 
-		next(w, r, id)
+		next.ServeHTTP(w, r)
 	})
 }

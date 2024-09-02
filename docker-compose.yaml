@@ -38,7 +38,7 @@ services:
       - REDIS_USER_PASSWORD=root
 
   server:
-    image: meraiku/kode
+    build: .
     restart: always
     ports:
       - 9000:9000
