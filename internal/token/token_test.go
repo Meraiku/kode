@@ -3,32 +3,31 @@ package token
 import (
 	"encoding/base64"
 	"testing"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestJWTGeneration(t *testing.T) {
 
-	assert := assert.New(t)
+	tok := NewTokens()
+	id := uuid.NewString()
+	secret := "aya"
 
-	idWant := "1"
-	ipWant := "ip"
+	token, err := tok.ID(id).ExpiredAt(time.Second).Generate([]byte(secret))
 
-	got, err := GetJWT(idWant, ipWant)
+	tok.Claims, err = ParseJWT(token, []byte(secret))
 
-	assert.Nil(err)
+	assert.Nil(t, err, "expected valid token, got invalid")
 
-	assert.NotEqual(got, "")
+	assert.Equal(t, id, tok.Claims.ID, "expected %s, got %s", id, tok.Claims.ID)
 
-	payload, err := ParseJWT(got)
+	time.Sleep(2 * time.Second)
 
-	assert.Nil(err)
+	_, err = ParseJWT(token, []byte(secret))
 
-	id, _ := payload.GetSubject()
-	ip, _ := payload.GetIssuer()
-
-	assert.Equal(idWant, id)
-	assert.Equal(ipWant, ip)
+	assert.NotNil(t, err, "expected invalid token, got valid")
 }
 
 func TestRefreshTokenGeneration(t *testing.T) {

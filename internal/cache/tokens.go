@@ -9,21 +9,13 @@ import (
 )
 
 func (c *Redis) SetTokens(id string, tokens *token.Tokens, ctx context.Context) error {
-	payload, err := token.ParseJWT(tokens.AccessToken)
-	if err != nil {
-		return err
-	}
-	expires, err := payload.GetExpirationTime()
-	if err != nil {
-		return err
-	}
 
 	json, err := json.Marshal(tokens)
 	if err != nil {
 		return err
 	}
 
-	_, err = c.cache.Set(ctx, id, json, expires.UTC().Sub(time.Now().UTC())).Result()
+	_, err = c.cache.Set(ctx, id, json, time.Hour).Result()
 	if err != nil {
 		return err
 	}

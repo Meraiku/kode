@@ -1,44 +1,71 @@
 package token
 
 import (
-	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
-var key = []byte(os.Getenv("JWT_SECRET"))
-
 type Tokens struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
+	AccessToken  string  `json:"access_token"`
+	RefreshToken string  `json:"refresh_token"`
+	Claims       *Claims `json:"-"`
 }
 
-func GetJWT(id string, ip string) (string, error) {
+type Claims struct {
+	ID  string `json:"id"`
+	UID string `json:"uid"`
+	jwt.RegisteredClaims
+}
 
-	claims := jwt.RegisteredClaims{
-		Issuer:    ip,
-		Subject:   id,
-		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(15 * time.Minute)),
+func NewTokens() *Tokens {
+	return &Tokens{
+		Claims: &Claims{},
 	}
+}
 
-	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS512, claims)
+func (t *Tokens) Generate(secret []byte) (string, error) {
 
-	token, err := jwtToken.SignedString(key)
+	t.Claims.UID = uuid.NewString()
+
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS512, t.Claims)
+
+	token, err := jwtToken.SignedString(secret)
 	if err != nil {
 		return "", err
 	}
 
+	t.Claims = &Claims{}
+
 	return token, nil
 }
 
-func ParseJWT(tokenStr string) (jwt.Claims, error) {
+func (t *Tokens) ID(id string) *Tokens {
+	t.Claims.ID = id
 
-	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) { return key, nil })
+	return t
+}
+
+func (t *Tokens) Issuer(issuer string) *Tokens {
+	t.Claims.Issuer = issuer
+
+	return t
+}
+
+func (t *Tokens) ExpiredAt(expirationTime time.Duration) *Tokens {
+	t.Claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(expirationTime).UTC())
+	return t
+}
+
+func ParseJWT(tokenStr string, secret []byte) (*Claims, error) {
+
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) { return secret, nil })
 	if token != nil {
 		if token.Valid {
-			return token.Claims, nil
+			return claims, nil
 		}
 	}
 

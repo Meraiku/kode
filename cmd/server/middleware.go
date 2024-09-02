@@ -43,17 +43,14 @@ func (app *application) authenticateUser(next http.Handler) http.Handler {
 			}
 		}
 
-		payload, err := token.ParseJWT(cookie.Value)
+		payload, err := token.ParseJWT(cookie.Value, []byte(app.accessSecret))
 		if err != nil {
+			app.errorLog.Print(err)
 			app.respondWithError(w, http.StatusUnauthorized, "error parsing Api Key")
 			return
 		}
 
-		id, err := payload.GetSubject()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+		id := payload.ID
 
 		expirationTime, err := payload.GetExpirationTime()
 		if err != nil {

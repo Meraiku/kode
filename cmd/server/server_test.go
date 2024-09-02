@@ -155,7 +155,7 @@ func TestAPIserver(t *testing.T) {
 
 				json.Unmarshal([]byte(body), &resp)
 
-				_, err = token.ParseJWT(resp.AccessToken)
+				_, err = token.ParseJWT(resp.AccessToken, []byte{})
 
 				assert.Nil(err)
 			})

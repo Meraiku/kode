@@ -10,6 +10,7 @@ import (
 	"net/smtp"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/meraiku/kode/internal/token"
 	"github.com/redis/go-redis/v9"
@@ -76,23 +77,19 @@ func (app *application) respondWithJSON(w http.ResponseWriter, code int, payload
 
 func (app *application) writeTokens(id, ip string, w http.ResponseWriter) (*token.Tokens, error) {
 
-	access, err := token.GetJWT(id, ip)
+	t := token.NewTokens()
+
+	access, err := t.ID(id).Issuer(ip).ExpiredAt(15 * time.Minute).Generate([]byte(app.accessSecret))
 	if err != nil {
 		return nil, err
 	}
 
-	refresh := token.GetRefreshToken()
+	refresh, err := t.ExpiredAt(24 * time.Hour).Generate([]byte(app.refreshSecret))
+	if err != nil {
+		return nil, err
+	}
 
 	tokens := &token.Tokens{AccessToken: access, RefreshToken: refresh}
-
-	cryptoRefresh, err := bcrypt.GenerateFromPassword([]byte(tokens.RefreshToken), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := app.db.UpdateUserInfo(id, string(cryptoRefresh), app.ctx); err != nil {
-		return nil, err
-	}
 
 	if err := app.cache.SetTokens(id, tokens, app.ctx); err != nil {
 		return nil, err

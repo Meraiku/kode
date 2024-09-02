@@ -3,10 +3,13 @@ include .env
 .ONESHELL:
 
 build:
-	@go build -o ./.bin/auth_serv ./cmd/auth
+	@go build -o ./.bin/server ./cmd/server
 
 run:build
-	@./.bin/auth_serv
+	@./.bin/server
+
+r:build
+	docker compose up
 
 up:
 	cd ./sql/migrations;

@@ -1,4 +1,4 @@
 FROM debian:stable-slim
 
-COPY ./.bin/auth_serv ./bin/auth
-CMD [ "/bin/auth" ]
+COPY ./.bin/server ./bin/server
+CMD [ "/bin/server" ]

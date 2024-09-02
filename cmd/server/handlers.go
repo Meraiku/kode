@@ -34,6 +34,7 @@ func (app *application) handleGetTokens(w http.ResponseWriter, r *http.Request) 
 			app.respondWithError(w, http.StatusBadRequest, database.ErrNotFound.Error())
 			return
 		}
+		app.errorLog.Print(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -63,7 +64,7 @@ func (app *application) handleRefreshTokens(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		payload, err := token.ParseJWT(tokens.AccessToken)
+		payload, err := token.ParseJWT(tokens.AccessToken, []byte(app.accessSecret))
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return

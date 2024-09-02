@@ -15,11 +15,13 @@ import (
 )
 
 type application struct {
-	errorLog *log.Logger
-	infoLog  *log.Logger
-	db       database.Store
-	cache    cache.Cache
-	ctx      context.Context
+	errorLog      *log.Logger
+	infoLog       *log.Logger
+	db            database.Store
+	cache         cache.Cache
+	ctx           context.Context
+	accessSecret  string
+	refreshSecret string
 }
 
 func main() {
@@ -53,11 +55,13 @@ func main() {
 	defer rdb.Close()
 
 	cfg := &application{
-		infoLog:  infoLog,
-		errorLog: errorLog,
-		db:       database.NewDB(db),
-		ctx:      ctx,
-		cache:    cache.NewCache(rdb),
+		infoLog:       infoLog,
+		errorLog:      errorLog,
+		db:            database.NewDB(db),
+		ctx:           ctx,
+		cache:         cache.NewCache(rdb),
+		accessSecret:  os.Getenv("JWT_ACCESS"),
+		refreshSecret: os.Getenv("JWT_REFRESH"),
 	}
 
 	srv := http.Server{
